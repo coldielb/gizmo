@@ -34,10 +34,20 @@ A complete desktop buddy application featuring a powerful custom scripting langu
 
 ### Installation
 
+**Option 1: Easy Install (Recommended)**
+```bash
+git clone https://github.com/yourusername/gizmo.git
+cd gizmo
+./install.sh
+```
+The install script will build the release binary and install `gizmo` to your PATH so you can use it from anywhere.
+
+**Option 2: Manual Build**
 ```bash
 git clone https://github.com/yourusername/gizmo.git
 cd gizmo
 cargo build --release
+# Binary will be at target/release/gizmo
 ```
 
 ### Running Your First Animation
