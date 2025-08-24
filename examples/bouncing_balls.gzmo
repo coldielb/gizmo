@@ -1,0 +1,150 @@
+// Bouncing Balls - Physics simulation with multiple balls
+// Demonstrates mathematical physics calculations and collision detection
+
+frames physics_sequence = [];
+
+repeat 120 times do
+    frame physics_frame = pattern(64, 64) {
+        pixel_on = 0;
+        
+        // Ball 1: Large slow ball
+        ball1_start_x = 20;
+        ball1_start_y = 20;
+        ball1_vx = 1.2;
+        ball1_vy = 0.8;
+        ball1_radius = 8;
+        ball1_gravity = 0.02;
+        ball1_bounce = 0.85;  // Energy retention after bounce
+        
+        // Calculate ball 1 position with physics
+        ball1_time = time * 0.5;  // Slow down time for this ball
+        
+        // Horizontal motion with wall bouncing
+        ball1_period_x = (128 - ball1_radius * 2) / ball1_vx;
+        ball1_cycle_x = floor(ball1_time / ball1_period_x);
+        ball1_t_in_cycle_x = ball1_time - ball1_cycle_x * ball1_period_x;
+        
+        if ball1_cycle_x % 2 == 0 then
+            ball1_x = ball1_start_x + ball1_vx * ball1_t_in_cycle_x;
+        else
+            ball1_x = (128 - ball1_radius) - ball1_vx * ball1_t_in_cycle_x;
+        end;
+        
+        // Vertical motion with gravity and bouncing
+        ball1_vy_current = ball1_vy + ball1_gravity * ball1_time;
+        ball1_y = ball1_start_y + ball1_vy * ball1_time + 0.5 * ball1_gravity * ball1_time * ball1_time;
+        
+        // Handle vertical bouncing (simplified)
+        if ball1_y > (64 - ball1_radius) then
+            ball1_y = (64 - ball1_radius) - (ball1_y - (64 - ball1_radius));
+        end;
+        
+        // Ball 2: Small fast ball
+        ball2_start_x = 100;
+        ball2_start_y = 30;
+        ball2_vx = 2.5;
+        ball2_vy = 1.5;
+        ball2_radius = 5;
+        ball2_time = time * 0.8;
+        
+        // Ball 2 position (simpler bouncing)
+        ball2_period_x = (64 - ball2_radius * 2) / ball2_vx;
+        ball2_cycle_x = floor(ball2_time / ball2_period_x);
+        ball2_t_in_cycle_x = ball2_time - ball2_cycle_x * ball2_period_x;
+        
+        if ball2_cycle_x % 2 == 0 then
+            ball2_x = ball2_start_x + ball2_vx * ball2_t_in_cycle_x;
+        else
+            ball2_x = (64 - ball2_radius) - ball2_vx * ball2_t_in_cycle_x;
+        end;
+        
+        ball2_period_y = (64 - ball2_radius * 2) / ball2_vy;
+        ball2_cycle_y = floor(ball2_time / ball2_period_y);
+        ball2_t_in_cycle_y = ball2_time - ball2_cycle_y * ball2_period_y;
+        
+        if ball2_cycle_y % 2 == 0 then
+            ball2_y = ball2_start_y + ball2_vy * ball2_t_in_cycle_y;
+        else
+            ball2_y = (64 - ball2_radius) - ball2_vy * ball2_t_in_cycle_y;
+        end;
+        
+        // Ball 3: Medium orbiting ball
+        ball3_center_x = 32;
+        ball3_center_y = 32;
+        ball3_orbit_radius = 25;
+        ball3_radius = 6;
+        ball3_speed = 0.1;
+        
+        ball3_angle = time * ball3_speed;
+        ball3_x = ball3_center_x + cos(ball3_angle) * ball3_orbit_radius;
+        ball3_y = ball3_center_y + sin(ball3_angle) * ball3_orbit_radius;
+        
+        // Check if current pixel is inside any ball
+        // Ball 1
+        ball1_dx = col - ball1_x;
+        ball1_dy = row - ball1_y;
+        ball1_distance = sqrt(ball1_dx * ball1_dx + ball1_dy * ball1_dy);
+        
+        if ball1_distance <= ball1_radius then
+            pixel_on = 1;
+        end;
+        
+        // Ball 2  
+        ball2_dx = col - ball2_x;
+        ball2_dy = row - ball2_y;
+        ball2_distance = sqrt(ball2_dx * ball2_dx + ball2_dy * ball2_dy);
+        
+        if ball2_distance <= ball2_radius then
+            pixel_on = 1;
+        end;
+        
+        // Ball 3
+        ball3_dx = col - ball3_x;
+        ball3_dy = row - ball3_y;
+        ball3_distance = sqrt(ball3_dx * ball3_dx + ball3_dy * ball3_dy);
+        
+        if ball3_distance <= ball3_radius then
+            pixel_on = 1;
+        end;
+        
+        // Add trails behind the balls for visual flair
+        trail_chance = random();
+        
+        // Ball 1 trail
+        if ball1_distance <= ball1_radius + 3 and ball1_distance > ball1_radius then
+            if trail_chance > 0.7 then
+                pixel_on = 1;
+            end;
+        end;
+        
+        // Ball 2 trail (faster, so longer trail)
+        if ball2_distance <= ball2_radius + 2 and ball2_distance > ball2_radius then
+            if trail_chance > 0.6 then
+                pixel_on = 1;
+            end;
+        end;
+        
+        // Add floor for reference
+        if row >= 60 and row <= 62 then
+            floor_pattern = floor(col / 8) % 2;
+            if floor_pattern == 0 then
+                pixel_on = 1;
+            end;
+        end;
+        
+        // Add walls
+        if (col <= 2 or col >= 61) and row <= 60 then
+            wall_pattern = floor(row / 6) % 2;
+            if wall_pattern == 0 then
+                pixel_on = 1;
+            end;
+        end;
+        
+        return pixel_on;
+    };
+    
+    add_frame(physics_sequence, physics_frame);
+end;
+
+// Medium speed for smooth physics
+loop_speed(physics_sequence, 75);

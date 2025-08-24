@@ -1,0 +1,22 @@
+// Simple test to debug issues
+frames test_sequence = [];
+
+repeat 10 times do
+    frame test_frame = pattern(32, 32) {
+        center = 16;
+        dx = col - center;
+        dy = row - center;
+        distance = sqrt(dx * dx + dy * dy);
+        
+        result = 0;
+        if distance < 10 then
+            result = 1;
+        end;
+        
+        return result;
+    };
+    
+    add_frame(test_sequence, test_frame);
+end;
+
+loop_speed(test_sequence, 200);

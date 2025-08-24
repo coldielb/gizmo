@@ -1,0 +1,27 @@
+// Simplified Digital Rain - Less complex version
+frames rain_sequence = [];
+
+repeat 40 times do
+    frame rain_frame = pattern(64, 64) {
+        // Create simple vertical streams
+        stream_id = floor(col / 4);
+        
+        // Simple falling effect
+        fall_position = (time + stream_id * 5) % 80;
+        
+        // Distance from fall position
+        distance_from_fall = abs(row - fall_position);
+        
+        // Show pixel if close to fall position
+        show_pixel = 0;
+        if distance_from_fall < 8 then
+            show_pixel = 1;
+        end;
+        
+        return show_pixel;
+    };
+    
+    add_frame(rain_sequence, rain_frame);
+end;
+
+loop_speed(rain_sequence, 150);

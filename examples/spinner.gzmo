@@ -1,0 +1,47 @@
+// Spiral Wave Spinner - A mesmerizing rotating pattern with expanding rings
+
+frames spinner_sequence = [];
+
+// Create 48 frames for smooth rotation (7.5 degrees per frame)
+repeat 48 times do
+    frame spiral_frame = pattern(64, 64) {
+        // Center of the 64x64 grid
+        center_x = 32;
+        center_y = 32;
+
+        // Calculate distance from center
+        dx = col - center_x;
+        dy = row - center_y;
+        distance = sqrt(dx * dx + dy * dy);
+
+        // Calculate angle from center (in radians)
+        angle = atan2(dy, dx);
+
+        // Current rotation offset (changes each frame)
+        rotation_offset = time * 0.13;  // ~7.5 degrees per frame
+
+        // Create spiral pattern
+        spiral_value = sin(distance * 0.2 - rotation_offset) +
+                      sin(angle * 3 + rotation_offset * 2);
+
+        // Add pulsing rings
+        ring_pattern = sin(distance * 0.15 + rotation_offset * 1.5);
+
+        // Combine patterns with some complexity
+        wave_interference = sin((dx * 0.1) + rotation_offset) *
+                           cos((dy * 0.1) - rotation_offset);
+
+        // Final pattern combination
+        final_value = spiral_value + ring_pattern * 0.7 + wave_interference * 0.5;
+
+        // Convert to binary (with some threshold magic for interesting shapes)
+        threshold = 0.3 + sin(distance * 0.05 + rotation_offset * 0.8) * 0.2;
+
+        return final_value > threshold ? 1 : 0;
+    };
+
+    add_frame(spinner_sequence, spiral_frame);
+end;
+
+// Loop the spinner smoothly at 80ms per frame
+loop_speed(spinner_sequence, 80);

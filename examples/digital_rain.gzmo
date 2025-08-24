@@ -1,0 +1,91 @@
+// Digital Rain - Matrix-style cascading code effect
+// Features vertical streams of "data" falling down the screen
+// with varying speeds and intensities
+
+frames rain_sequence = [];
+
+// Create 60 frames for smooth falling effect  
+repeat 60 times do
+    frame rain_frame = pattern(64, 64) {
+        // Create multiple vertical streams with different characteristics
+        stream_width = 8;  // Width of each data stream
+        stream_id = floor(col / stream_width);
+        stream_pos = col % stream_width;
+        
+        // Each stream has its own speed and offset
+        stream_speed = (stream_id % 3 + 1) * 0.5;  // Varying speeds
+        stream_offset = stream_id * 17;  // Stagger the streams
+        
+        // Calculate the "head" position of each stream
+        head_position = (time * stream_speed + stream_offset) % 80;
+        
+        // Distance from the stream head
+        distance_from_head = abs(row - head_position);
+        
+        // Stream brightness decreases with distance from head
+        stream_active = distance_from_head < 25;
+        
+        base_intensity = 0;
+        if stream_active then
+            // Bright head of the stream
+            if distance_from_head < 3 then
+                base_intensity = 1.0;
+            else
+                // Fading tail
+                fade_factor = 1.0 - (distance_from_head / 25.0);
+                base_intensity = fade_factor * fade_factor;  // Quadratic fade
+            end;
+        end;
+        
+        // Add character-like variations within each stream
+        char_variation = sin(row * 0.3 + stream_id * 2.1) * 
+                        cos(row * 0.7 - stream_id * 1.3) * 0.3 + 0.7;
+        
+        // Create "glitches" - random bright spots
+        glitch_chance = random();
+        glitch_active = glitch_chance > 0.98 and base_intensity > 0.1;
+        
+        if glitch_active then
+            base_intensity = 1.0;
+        end;
+        
+        // Horizontal position variation within stream
+        h_variation = sin(stream_pos * 1.2) * 0.5 + 0.5;
+        
+        // Only show pixels in the "character" positions
+        show_pixel = 0;
+        if stream_pos < 6 and h_variation > 0.3 then
+            show_pixel = 1;
+        end;
+        
+        // Final intensity calculation
+        final_intensity = base_intensity * char_variation;
+        
+        // Add some background "static" (simplified)
+        background_static = 0;
+        static_check = floor(row * 7 + col * 11 + time * 3) % 200;
+        if show_pixel == 0 and static_check == 0 then
+            background_static = 0.8;
+        end;
+        
+        final_intensity = final_intensity + background_static;
+        
+        // Create threshold with slight time variation for organic feel
+        threshold = 0.4 + sin(time * 0.1) * 0.1;
+        
+        final_result = 0;
+        if show_pixel == 1 and final_intensity > threshold then
+            final_result = 1;
+        end;
+        if background_static > 0 then
+            final_result = 1;
+        end;
+        
+        return final_result;
+    };
+    
+    add_frame(rain_sequence, rain_frame);
+end;
+
+// Smooth animation speed  
+loop_speed(rain_sequence, 100);
