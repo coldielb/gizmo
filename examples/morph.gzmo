@@ -1,0 +1,83 @@
+frames digital_morph = [];
+
+repeat 60 times do
+    frame morph_frame = pattern(64, 64) {
+        center_x = 32;
+        center_y = 32;
+
+        // Calculate distance and angle from center
+        dx = col - center_x;
+        dy = row - center_y;
+        distance = sqrt(dx * dx + dy * dy);
+        angle = atan2(dy, dx);
+
+        // Seamless loop progress
+        loop_progress = time * 2 * 3.14159 / 60;
+
+        // Digital rain effect - vertical streams
+        rain_seed = sin(col * 1.3 + sin(loop_progress * 2)) *
+                   cos(col * 0.7 - loop_progress);
+        rain_fall = sin(row * 0.15 - loop_progress * 4 + rain_seed * 2);
+        digital_rain = (rain_fall > 0.6) and (random() > 0.3);
+
+        // Morphing hexagon/star shape
+        morph_factor = sin(loop_progress);
+        hex_angle = angle * 6;
+        star_angle = angle * 8;
+
+        // Blend between hexagon and star based on morph_factor
+        shape_value = sin(hex_angle) * (1 - abs(morph_factor)) +
+                     sin(star_angle) * abs(morph_factor);
+
+        // Pulsing ring boundaries
+        inner_radius = 12 + sin(loop_progress * 2) * 4;
+        outer_radius = 28 + cos(loop_progress * 1.5) * 3;
+
+        // Spiral arms rotating in opposite directions
+        spiral1 = sin(angle * 3 + loop_progress * 2 + distance * 0.1);
+        spiral2 = sin(angle * 4 + (0 - loop_progress * 3) + (0 - distance * 0.08));
+
+        // Interference pattern
+        wave1 = sin(dx * 0.2 + loop_progress * 2) * sin(dy * 0.2 + (0 - loop_progress));
+        wave2 = cos(dx * 0.15 + (0 - loop_progress)) * cos(dy * 0.15 + loop_progress * 1.5);
+        interference = wave1 + wave2;
+
+        // Pixelated noise for texture
+        pixel_noise = (sin(col * 7.3) * cos(row * 5.7) +
+                      sin(time * 0.3 + col * row * 0.01)) > 0.5;
+
+        // Combine all effects with different zones
+        pixel_value = 0;
+
+        if distance < inner_radius then
+            // Core: morphing shape with interference
+            core_pattern = (shape_value > 0.3) and (interference > (0 - 0.5));
+            pixel_value = core_pattern ? 1 : 0;
+        else
+            if distance < outer_radius then
+                // Middle: spirals and digital rain
+                spiral_mix = ((spiral1 > 0.4) or (spiral2 > 0.5)) and pixel_noise;
+                middle_pattern = spiral_mix or (digital_rain and (random() > 0.4));
+                pixel_value = middle_pattern ? 1 : 0;
+            else
+                // Outer: pure digital rain with occasional flashes
+                flash = (sin(loop_progress * 12 + angle * 4) > 0.95) and
+                       (random() > 0.7);
+                outer_pattern = digital_rain or flash;
+                pixel_value = outer_pattern ? 1 : 0;
+            end;
+        end;
+
+        // Add random glitch effect
+        glitch_chance = 0.02;
+        glitch = random() < glitch_chance ? 1 : 0;
+
+        final_pixel = pixel_value > 0 ? 1 : glitch;
+
+        return final_pixel;
+    };
+
+    add_frame(digital_morph, morph_frame);
+end;
+
+loop_speed(digital_morph, 40);
