@@ -1,0 +1,59 @@
+frames pulse_wave = [];
+
+repeat 60 times do
+    frame wave_frame = pattern(64, 64) {
+        center_x = 32;
+        center_y = 32;
+
+        // Calculate distance from center
+        dx = col - center_x;
+        dy = row - center_y;
+        distance = sqrt(dx * dx + dy * dy);
+        angle = atan2(dy, dx);
+
+        // Create seamless loop by using sine wave with full period
+        loop_progress = time * 2 * 3.14159 / 60;
+
+        // Pulsing ripple effect
+        ripple_phase = distance * 0.3 - loop_progress * 2;
+        ripple = sin(ripple_phase) > 0.3;
+
+        // Rotating star pattern
+        star_angle = angle + loop_progress;
+        star_points = 6;
+        star_pattern = sin(star_angle * star_points) > 0.5;
+
+        // Breathing center circle
+        breath_radius = 8 + sin(loop_progress) * 3;
+        in_center = distance < breath_radius;
+
+        // Outer rotating dots
+        dot_angle = angle - loop_progress * 0.5;
+        dot_pattern = (sin(dot_angle * 8) > 0.7) and
+                      (distance > 25) and
+                      (distance < 30);
+
+        // Combine all effects
+        pixel_value = 0;
+        
+        if in_center then
+            // Animated center with inverse pattern
+            pixel_value = sin(distance * 0.5 + loop_progress * 3) > 0 ? 1 : 0;
+        else
+            if distance < 20 then
+                // Middle zone with star pattern
+                pixel_value = (ripple and star_pattern) ? 1 : 0;
+            else
+                // Outer zone with ripples and dots
+                outer_ripple = sin(distance * 0.2 - loop_progress * 1.5) > 0.4;
+                pixel_value = (outer_ripple or dot_pattern) ? 1 : 0;
+            end;
+        end;
+        
+        return pixel_value;
+    };
+
+    add_frame(pulse_wave, wave_frame);
+end;
+
+loop_speed(pulse_wave, 50);
